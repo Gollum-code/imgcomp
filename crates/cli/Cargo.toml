@@ -1,0 +1,20 @@
+[package]
+name = "imgcomp"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+description = "Smart image compressor targeting an exact size budget"
+
+[[bin]]
+name = "imgcomp"
+path = "src/main.rs"
+
+[dependencies]
+anyhow = "1.0.104"
+clap = { version = "4.6.7", features = ["derive"] }
+engine = { version = "0.1.0", path = "../engine" }
+indicatif = "0.18.6"
+license = { version = "0.1.0", path = "../license" }
+rayon = "1.12.0"
+target = { version = "0.1.0", path = "../target" }
+walkdir = "2.5.0"

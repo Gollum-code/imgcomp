@@ -1,0 +1,16 @@
+[package]
+name = "engine"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+description = "Image codec pipeline: decode + encode (mozjpeg / oxipng / libwebp / ravif)"
+
+[dependencies]
+anyhow = "1.0.104"
+image = { version = "0.25.10", default-features = false, features = ["jpeg", "png", "webp"] }
+imgref = "1.12.3"
+mozjpeg = "0.10.13"
+oxipng = "10.2.1"
+ravif = { version = "0.13.0", default-features = false, features = ["threading"] }
+rgb = "0.8.53"
+webp = "0.3.1"

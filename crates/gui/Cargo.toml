@@ -1,0 +1,23 @@
+[package]
+name = "imgcomp-gui"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+description = "Desktop GUI for imgcomp (drag-drop, preview compare)"
+
+[lib]
+name = "imgcomp_gui"
+path = "src/lib.rs"
+
+[[bin]]
+name = "imgcomp-gui"
+path = "src/main.rs"
+
+[dependencies]
+anyhow = "1.0.104"
+eframe = { version = "0.36.2", default-features = false, features = ["glow", "default_fonts", "wayland", "x11", "accesskit"] }
+engine = { version = "0.1.0", path = "../engine" }
+image = { version = "0.25.10", default-features = false, features = ["jpeg", "png", "webp"] }
+rfd = "0.17.2"
+target = { version = "0.1.0", path = "../target" }
+walkdir = "2.5.0"

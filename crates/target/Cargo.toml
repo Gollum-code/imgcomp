@@ -1,0 +1,13 @@
+[package]
+name = "target"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+description = "Target-size binary search with SSIM gating"
+
+[dependencies]
+anyhow = "1.0.104"
+dssim = "3.5.1"
+engine = { version = "0.1.0", path = "../engine" }
+image = { version = "0.25.10", default-features = false, features = ["jpeg", "png", "webp"] }
+rgb = "0.8.53"

@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>imgcomp — 一键把图片压到目标大小</title>
+<meta name="description" content="imgcomp 本地图片压缩工具：按目标体积（≤500KB）自动压缩，支持 WebP/AVIF，批量处理，不联网不上传。">
+<style>
+  :root {
+    --bg: #0f1115;
+    --panel: #171a21;
+    --border: #262a33;
+    --text: #e6e9ef;
+    --muted: #9aa3b2;
+    --accent: #4f8cff;
+    --accent2: #59d9a0;
+    --warn: #f0bd5f;
+    --danger: #f0655f;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: "PingFang SC", "Microsoft YaHei", "Segoe UI", system-ui, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.6;
+  }
+  .wrap { max-width: 960px; margin: 0 auto; padding: 0 24px; }
+  nav {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 18px 0; border-bottom: 1px solid var(--border);
+  }
+  .logo { font-weight: 700; font-size: 18px; }
+  .logo span { color: var(--accent); }
+  nav .btn { font-size: 14px; }
+  .btn {
+    display: inline-block; padding: 10px 22px; border-radius: 8px;
+    background: var(--accent); color: #fff; text-decoration: none;
+    font-weight: 600; border: 1px solid var(--accent);
+    transition: opacity .15s;
+  }
+  .btn:hover { opacity: .88; }
+  .btn.ghost { background: transparent; color: var(--text); border-color: var(--border); }
+  .btn.dark { background: var(--panel); color: var(--accent); border-color: var(--accent); }
+  .btn.big { font-size: 16px; padding: 14px 34px; }
+  .btn-row { display: flex; gap: 12px; flex-wrap: wrap; }
+
+  header { padding: 72px 0 56px; text-align: center; }
+  h1 { font-size: 40px; line-height: 1.25; letter-spacing: -.5px; }
+  h1 em { font-style: normal; color: var(--accent); }
+  .sub { margin: 18px auto 36px; max-width: 620px; color: var(--muted); font-size: 17px; }
+  .badge {
+    display: inline-block; padding: 6px 14px; border-radius: 999px;
+    border: 1px solid var(--accent2); color: var(--accent2); font-size: 13px; margin-bottom: 22px;
+  }
+
+  .terminal {
+    max-width: 720px; margin: 0 auto; text-align: left;
+    background: #0b0d12; border: 1px solid var(--border); border-radius: 12px;
+    padding: 20px 24px; font-family: "Cascadia Code", Consolas, monospace; font-size: 14px;
+    overflow-x: auto;
+  }
+  .terminal .cmt { color: #6b7280; }
+  .terminal .cmd { color: var(--accent); }
+  .terminal .out { color: var(--accent2); }
+
+  section { padding: 56px 0; border-top: 1px solid var(--border); }
+  h2 { font-size: 26px; margin-bottom: 28px; }
+  .features { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 18px; }
+  .card {
+    background: var(--panel); border: 1px solid var(--border); border-radius: 12px; padding: 22px;
+  }
+  .card h3 { font-size: 17px; margin-bottom: 8px; }
+  .card p { color: var(--muted); font-size: 14px; }
+
+  .pricing { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 18px; }
+  .plan { background: var(--panel); border: 1px solid var(--border); border-radius: 14px; padding: 28px; }
+  .plan.pro { border-color: var(--accent); }
+  .plan h3 { font-size: 20px; }
+  .plan .price { font-size: 34px; font-weight: 700; margin: 12px 0 4px; }
+  .plan .price small { font-size: 14px; color: var(--muted); font-weight: 400; }
+  .plan ul { list-style: none; margin: 18px 0 24px; }
+  .plan li { padding: 6px 0; color: var(--muted); font-size: 14px; }
+  .plan li::before { content: "✓ "; color: var(--accent2); font-weight: 700; }
+  .plan li.no::before { content: "— "; color: var(--danger); }
+  .plan li.no { color: #5c6470; }
+
+  .faq { max-width: 720px; }
+  .faq details { background: var(--panel); border: 1px solid var(--border); border-radius: 10px; padding: 16px 20px; margin-bottom: 12px; }
+  .faq summary { cursor: pointer; font-weight: 600; }
+  .faq p { color: var(--muted); font-size: 14px; margin-top: 10px; }
+
+  footer { border-top: 1px solid var(--border); padding: 28px 0 40px; text-align: center; color: var(--muted); font-size: 13px; }
+  footer a { color: var(--accent); text-decoration: none; }
+
+  @media (max-width: 640px) {
+    h1 { font-size: 30px; }
+    header { padding: 48px 0 40px; }
+    .btn-row { flex-direction: column; }
+    .btn-row .btn { text-align: center; }
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="wrap" style="display:flex;align-items:center;justify-content:space-between;width:100%;">
+    <div class="logo">img<span>comp</span></div>
+    <a class="btn ghost" href="#download">下载</a>
+  </div>
+</nav>
+
+<header>
+  <div class="wrap">
+    <span class="badge">本地运行 · 不联网 · 不上传</span>
+    <h1>一键把图片压到 <em>目标大小</em></h1>
+    <p class="sub">电商主图压到 ≤500KB？批量压到刚好能上传？imgcomp 自动二分质量并做人眼级质量把关，做到「刚好达标、不糊不糊」。支持 WebP / AVIF，批量递归，免费开源。</p>
+    <div class="btn-row" style="justify-content:center;">
+      <a class="btn big" href="#download">免费下载</a>
+      <a class="btn dark big" href="#pricing">升级 Pro</a>
+    </div>
+  </div>
+</header>
+
+<section id="demo">
+  <div class="wrap">
+    <div class="terminal">
+      <span class="cmt"># 100 张电商主图，全部压到 500KB 以内</span><br>
+      <span class="cmd">imgcomp</span> photos/ out/ --max 500kb -r<br>
+      <span class="out">banner.jpg</span>   248 KB → 99.7 KB   quality 80  OK<br>
+      <span class="out">hero.jpg</span>     297 KB → 92.4 KB   quality 76  OK<br>
+      <span class="out">photo.jpg</span>    431 KB → 98.1 KB   quality 72  OK<br>
+      <span class="cmt"># 或者用图形界面：拖进去，点 Compress</span><br>
+      <span class="cmd">imgcomp-gui</span>
+    </div>
+  </div>
+</section>
+
+<section id="features">
+  <div class="wrap">
+    <h2>能做什么</h2>
+    <div class="features">
+      <div class="card">
+        <h3>按目标体积压缩</h3>
+        <p>指定 ≤500KB / ≤2MB，自动二分质量逼近目标，而不是让你手调质量参数猜大小。</p>
+      </div>
+      <div class="card">
+        <h3>人眼级质量把关</h3>
+        <p>SSIM 感知对比防过度压缩：体积达标但质量崩了？宁大勿糊，自动标 UNMET 并保留原画质。</p>
+      </div>
+      <div class="card">
+        <h3>WebP / AVIF 转换</h3>
+        <p>JPG/PNG 一键转 WebP/AVIF，体积比 JPEG 小 30–70%，电商和网页提速利器。</p>
+      </div>
+      <div class="card">
+        <h3>批量 + 递归目录</h3>
+        <p>多线程并行，整个文件夹连同子目录一次处理完，带进度条和前后对比报告。</p>
+      </div>
+      <div class="card">
+        <h3>桌面图形界面</h3>
+        <p>拖拽导入、原图/压缩后并排预览对比、逐行结果表，不懂命令行也能用。</p>
+      </div>
+      <div class="card">
+        <h3>完全本地 · 零成本</h3>
+        <p>单文件 8MB，不联网不上传，压缩引擎全部开源免费，你的图不出你的电脑。</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="pricing">
+  <div class="wrap">
+    <h2>定价</h2>
+    <div class="pricing">
+      <div class="plan">
+        <h3>Free</h3>
+        <p class="price">¥0</p>
+        <ul>
+          <li>固定质量压缩（无限次）</li>
+          <li>每次最多 10 张图片</li>
+          <li>JPG / PNG 输出</li>
+          <li>CLI 与 GUI 均可使用</li>
+          <li class="no">按目标体积压缩</li>
+          <li class="no">WebP / AVIF 转换</li>
+        </ul>
+        <a class="btn big" href="#download" style="width:100%;text-align:center;">免费下载</a>
+      </div>
+      <div class="plan pro">
+        <h3>Pro</h3>
+        <p class="price">¥49 <small>一次买断 · 3 台设备</small></p>
+        <ul>
+          <li>按目标体积压缩（≤500KB 等）</li>
+          <li>无限批量处理</li>
+          <li>WebP / AVIF 转换</li>
+          <li>SSIM 质量把关</li>
+          <li>终身免费升级</li>
+          <li>断网最长 30 天可用</li>
+        </ul>
+        <a class="btn big" href="PASTE_CREEM_CHECKOUT_URL_HERE" style="width:100%;text-align:center;">升级 Pro</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="download">
+  <div class="wrap">
+    <h2>下载</h2>
+    <p class="sub" style="margin:0 0 28px;">Windows 单文件，解压即用，无需安装。Linux/macOS 可从源码编译。</p>
+    <div class="btn-row">
+      <a class="btn big" href="PASTE_DOWNLOAD_LINK_HERE">imgcomp-windows.zip</a>
+    </div>
+  </div>
+</section>
+
+<section id="faq">
+  <div class="wrap">
+    <h2>常见问题</h2>
+    <div class="faq">
+      <details open>
+        <summary>图片会上传到服务器吗？</summary>
+        <p>不会。imgcomp 完全在本地运行，压缩全程不联网、不上传，图片不出你的电脑。</p>
+      </details>
+      <details>
+        <summary>「压到 ≤500KB 但质量变糊」怎么办？</summary>
+        <p>imgcomp 内置 SSIM 质量把关。当某个大小必须以牺牲画质为代价时，它会保留原画质并把文件标为 UNMET，绝不为了体积毁图。</p>
+      </details>
+      <details>
+        <summary>免费版和 Pro 版有什么区别？</summary>
+        <p>免费版提供固定质量压缩和每次 10 张的限制，适合偶尔用。Pro 解锁按目标体积压缩、无限批量、WebP/AVIF 转换，一次买断终身使用。</p>
+      </details>
+      <details>
+        <summary>支持什么格式？</summary>
+        <p>输入 JPG / PNG / WebP；输出支持 JPG / PNG / WebP / AVIF。</p>
+      </details>
+      <details>
+        <summary>命令行版本开源吗？</summary>
+        <p>核心 CLI 开源，欢迎开发者把 imgcomp 集成到自己的工作流里。</p>
+      </details>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    imgcomp · 本地图片智能压缩工具 · <a href="PASTE_GITHUB_REPO_URL_HERE">GitHub</a>
+  </div>
+</footer>
+
+</body>
+</html>
