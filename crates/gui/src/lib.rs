@@ -58,7 +58,9 @@ pub fn format_label(f: Format) -> &'static str {
 pub fn process_one(path: &Path, out_dir: &Path, settings: &Settings) -> Result<Outcome, String> {
     let before = std::fs::metadata(path).map(|m| m.len()).unwrap_or(0);
     let img = engine::decode::load(path).map_err(|e| format!("decode failed: {e}"))?;
-    let fmt = settings.to.unwrap_or(Format::from_extension(path).unwrap_or(Format::Jpeg));
+    let fmt = settings
+        .to
+        .unwrap_or(Format::from_extension(path).unwrap_or(Format::Jpeg));
 
     let (data, quality, ssim, met) = match settings.mode {
         Mode::Target => {

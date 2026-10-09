@@ -1,5 +1,5 @@
 use eframe::egui;
-use imgcomp_gui::{format_label, fit, human, human_file, is_image, Mode, Outcome, Settings};
+use imgcomp_gui::{fit, format_label, human, human_file, is_image, Mode, Outcome, Settings};
 use std::path::{Path, PathBuf};
 use std::sync::mpsc::{self, Receiver, Sender};
 use std::time::Instant;
@@ -335,7 +335,11 @@ impl eframe::App for App {
         egui::panel::Panel::bottom("progress").show(ui, |ui| {
             let total = self.files.len();
             let done = self.done_count;
-            let pct = if total == 0 { 0.0 } else { done as f32 / total as f32 };
+            let pct = if total == 0 {
+                0.0
+            } else {
+                done as f32 / total as f32
+            };
             ui.add(egui::ProgressBar::new(pct).show_percentage());
         });
 

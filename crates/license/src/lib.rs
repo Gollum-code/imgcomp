@@ -38,7 +38,10 @@ impl CreemValidator {
             .context("IMGCOMP_LICENSE_API not set (Creem validate endpoint)")?;
         let product_id =
             std::env::var("IMGCOMP_PRODUCT_ID").context("IMGCOMP_PRODUCT_ID not set")?;
-        Ok(Self { api_base, product_id })
+        Ok(Self {
+            api_base,
+            product_id,
+        })
     }
 
     /// Always-rejects validator for when license API env vars are missing.

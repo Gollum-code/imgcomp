@@ -1,6 +1,6 @@
 use engine::{Format, RgbaImage};
 use image::ImageFormat;
-use imgcomp_gui::{Mode, Settings, parse_max, process_one};
+use imgcomp_gui::{parse_max, process_one, Mode, Settings};
 use std::path::Path;
 
 fn make_image_file(path: &Path) {

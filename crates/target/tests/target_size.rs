@@ -1,5 +1,5 @@
 use engine::RgbaImage;
-use target::{TargetOptions, compress_to_target};
+use target::{compress_to_target, TargetOptions};
 
 fn test_image(w: u32, h: u32) -> RgbaImage {
     RgbaImage::from_fn(w, h, |x, y| {

@@ -13,9 +13,9 @@ pub fn activate(key: &str) -> Result<()> {
 }
 
 pub fn status() -> Result<()> {
-    let lm = LicenseManager::new(license::CreemValidator::from_env().unwrap_or_else(|_| {
-        license::CreemValidator::dummy()
-    }));
+    let lm = LicenseManager::new(
+        license::CreemValidator::from_env().unwrap_or_else(|_| license::CreemValidator::dummy()),
+    );
     let st = lm.status();
     match st.tier {
         Tier::Pro => {
@@ -32,9 +32,9 @@ pub fn status() -> Result<()> {
 }
 
 pub fn deactivate() -> Result<()> {
-    let lm = LicenseManager::new(license::CreemValidator::from_env().unwrap_or_else(|_| {
-        license::CreemValidator::dummy()
-    }));
+    let lm = LicenseManager::new(
+        license::CreemValidator::from_env().unwrap_or_else(|_| license::CreemValidator::dummy()),
+    );
     lm.deactivate()?;
     println!("License removed.");
     Ok(())

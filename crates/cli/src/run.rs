@@ -50,9 +50,8 @@ pub fn run(opts: &RunOptions) -> Result<Summary> {
     let input_is_file = opts.input.is_file();
     let output_is_file = input_is_file && looks_like_file_path(&opts.output);
     if !output_is_file {
-        fs::create_dir_all(&opts.output).with_context(|| {
-            format!("cannot create output dir {}", opts.output.display())
-        })?;
+        fs::create_dir_all(&opts.output)
+            .with_context(|| format!("cannot create output dir {}", opts.output.display()))?;
     }
 
     let pb = ProgressBar::new(files.len() as u64);
@@ -74,10 +73,7 @@ pub fn run(opts: &RunOptions) -> Result<Summary> {
             .par_iter()
             .map(|(src, rel)| {
                 pb.inc(1);
-                let msg = format!(
-                    "{}",
-                    src.file_name().unwrap_or_default().to_string_lossy()
-                );
+                let msg = format!("{}", src.file_name().unwrap_or_default().to_string_lossy());
                 pb.set_message(msg);
                 process_file(src, rel, opts, output_is_file)
             })
@@ -102,9 +98,10 @@ fn collect_files(input: &Path, recursive: bool) -> Result<Vec<(PathBuf, PathBuf)
             .filter(|f| *f != Format::Avif)
             .context("input file must be jpg/png/webp")?;
         let _ = fmt;
-        return Ok(vec![(input.to_path_buf(), PathBuf::from(
-            input.file_name().unwrap_or_default(),
-        ))]);
+        return Ok(vec![(
+            input.to_path_buf(),
+            PathBuf::from(input.file_name().unwrap_or_default()),
+        )]);
     }
     if input.is_dir() {
         let mut out = Vec::new();
@@ -134,15 +131,10 @@ fn collect_files(input: &Path, recursive: bool) -> Result<Vec<(PathBuf, PathBuf)
     bail!("input does not exist: {}", input.display())
 }
 
-fn process_file(
-    src: &Path,
-    rel: &Path,
-    opts: &RunOptions,
-    output_is_file: bool,
-) -> FileResult {
-    let fmt = opts.to.unwrap_or_else(|| {
-        Format::from_extension(src).unwrap_or(Format::Jpeg)
-    });
+fn process_file(src: &Path, rel: &Path, opts: &RunOptions, output_is_file: bool) -> FileResult {
+    let fmt = opts
+        .to
+        .unwrap_or_else(|| Format::from_extension(src).unwrap_or(Format::Jpeg));
     let before = fs::metadata(src).map(|m| m.len()).unwrap_or(0);
 
     let mut result = FileResult {
@@ -157,7 +149,7 @@ fn process_file(
         unmet: false,
         error: None,
     };
-match process_inner(src, fmt, opts) {
+    match process_inner(src, fmt, opts) {
         Ok((data, quality, ssim, unmet)) => {
             let out_path = if output_is_file {
                 opts.output.clone()
@@ -190,8 +182,8 @@ fn process_inner(
     fmt: Format,
     opts: &RunOptions,
 ) -> Result<(Vec<u8>, u8, Option<f32>, bool)> {
-    let image: RgbaImage = engine::decode::load(src)
-        .with_context(|| format!("cannot load {}", src.display()))?;
+    let image: RgbaImage =
+        engine::decode::load(src).with_context(|| format!("cannot load {}", src.display()))?;
     engine::encode::check_dimensions(&image)?;
 
     match opts.max {
@@ -235,15 +227,25 @@ fn print_report(summary: &Summary) {
         let size_pair = format!(
             "{} -> {}",
             human_bytes(f.before),
-            if f.after > 0 { human_bytes(f.after) } else { "-".into() }
+            if f.after > 0 {
+                human_bytes(f.after)
+            } else {
+                "-".into()
+            }
         );
         let ratio = if f.before > 0 && f.after > 0 {
             format!("{:>+.1}%", (1.0 - f.after as f64 / f.before as f64) * 100.0)
         } else {
             "-".into()
         };
-        let quality = f.quality.map(|q| q.to_string()).unwrap_or_else(|| "-".into());
-        let ssim = f.ssim.map(|s| format!("{s:.4}")).unwrap_or_else(|| "-".into());
+        let quality = f
+            .quality
+            .map(|q| q.to_string())
+            .unwrap_or_else(|| "-".into());
+        let ssim = f
+            .ssim
+            .map(|s| format!("{s:.4}"))
+            .unwrap_or_else(|| "-".into());
         let status = if f.unmet {
             "UNMET".to_string()
         } else if f.ok {
@@ -279,7 +281,8 @@ fn print_report(summary: &Summary) {
 }
 
 fn write_csv(path: &Path, summary: &Summary) -> Result<()> {
-    let mut out = String::from("file,format,before_bytes,after_bytes,ratio,quality,ssim,status,error\n");
+    let mut out =
+        String::from("file,format,before_bytes,after_bytes,ratio,quality,ssim,status,error\n");
     for f in &summary.files {
         let name = f.source.to_string_lossy();
         let ratio = if f.before > 0 && f.after > 0 {

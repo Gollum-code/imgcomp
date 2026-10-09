@@ -125,12 +125,12 @@ fn measure_ssim(
     orig_ref: &RgbaImage,
     candidate: &RgbaImage,
 ) -> f32 {
-    let candidate_ref = if orig_ref.width() != candidate.width() || orig_ref.height() != candidate.height()
-    {
-        resize_to_same(candidate, orig_ref.width(), orig_ref.height())
-    } else {
-        candidate.clone()
-    };
+    let candidate_ref =
+        if orig_ref.width() != candidate.width() || orig_ref.height() != candidate.height() {
+            resize_to_same(candidate, orig_ref.width(), orig_ref.height())
+        } else {
+            candidate.clone()
+        };
     let cand_img = to_dssim_image(dssim, &candidate_ref);
     let (val, _) = dssim.compare(orig_prepared, &cand_img);
     f64::from(val) as f32

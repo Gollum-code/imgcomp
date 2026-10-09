@@ -29,9 +29,17 @@ enum Cmd {
         output: PathBuf,
         #[arg(long, value_name = "SIZE")]
         max: String,
-        #[arg(long, value_name = "FORMAT", help = "output format: jpg/png/webp/avif (Pro: webp/avif)")]
+        #[arg(
+            long,
+            value_name = "FORMAT",
+            help = "output format: jpg/png/webp/avif (Pro: webp/avif)"
+        )]
         to: Option<String>,
-        #[arg(long, value_name = "F", help = "max perceptual difference (dssim), 0 = identical [default: 0.08]")]
+        #[arg(
+            long,
+            value_name = "F",
+            help = "max perceptual difference (dssim), 0 = identical [default: 0.08]"
+        )]
         ssim_threshold: Option<f32>,
         #[arg(long, short = 'r', help = "recurse into subdirectories")]
         recursive: bool,
@@ -48,7 +56,11 @@ enum Cmd {
         output: PathBuf,
         #[arg(long, short = 'q', default_value_t = 80)]
         quality: u8,
-        #[arg(long, value_name = "FORMAT", help = "output format: jpg/png/webp/avif (Pro: webp/avif)")]
+        #[arg(
+            long,
+            value_name = "FORMAT",
+            help = "output format: jpg/png/webp/avif (Pro: webp/avif)"
+        )]
         to: Option<String>,
         #[arg(long, short = 'r', help = "recurse into subdirectories")]
         recursive: bool,
