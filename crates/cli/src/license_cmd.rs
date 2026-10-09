@@ -1,17 +1,6 @@
 use anyhow::Result;
 use license::{LicenseManager, Tier};
 
-pub fn current_tier_or_free() -> Tier {
-    match LicenseManager::new(license::CreemValidator::from_env().unwrap_or_else(|_| {
-        license::CreemValidator::dummy()
-    }))
-    .verify()
-    {
-        Ok(t) => t,
-        Err(_) => Tier::Free,
-    }
-}
-
 pub fn activate(key: &str) -> Result<()> {
     let lm = LicenseManager::new(license::CreemValidator::from_env()?);
     match lm.activate(key)? {

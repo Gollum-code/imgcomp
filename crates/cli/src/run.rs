@@ -2,14 +2,11 @@ use crate::size::human_bytes;
 use anyhow::{bail, Context, Result};
 use engine::{Format, RgbaImage};
 use indicatif::{ProgressBar, ProgressStyle};
-use license::Tier;
 use rayon::prelude::*;
 use std::collections::BTreeMap;
 use std::fs;
 use std::path::{Path, PathBuf};
 use std::time::Instant;
-
-pub const FREE_MAX_FILES: usize = 10;
 
 #[derive(Debug, Clone)]
 pub struct RunOptions {
@@ -22,7 +19,6 @@ pub struct RunOptions {
     pub recursive: bool,
     pub threads: usize,
     pub csv: Option<PathBuf>,
-    pub tier: Tier,
 }
 
 #[derive(Debug, Default)]
@@ -46,12 +42,10 @@ pub struct FileResult {
 }
 
 pub fn run(opts: &RunOptions) -> Result<Summary> {
-    enforce_tier(opts)?;
     let files = collect_files(&opts.input, opts.recursive)?;
     if files.is_empty() {
         bail!("no supported images found under {}", opts.input.display());
     }
-    let files = cap_free_batch(files, opts.tier);
 
     let input_is_file = opts.input.is_file();
     let output_is_file = input_is_file && looks_like_file_path(&opts.output);
@@ -100,40 +94,6 @@ pub fn run(opts: &RunOptions) -> Result<Summary> {
         write_csv(csv_path, &summary)?;
     }
     Ok(summary)
-}
-
-fn enforce_tier(opts: &RunOptions) -> Result<()> {
-    if opts.tier == Tier::Pro {
-        return Ok(());
-    }
-    if opts.max.is_some() {
-        bail!("target-size compression (--max) is a Pro feature. Run 'imgcomp activate <KEY>' to unlock.");
-    }
-    if let Some(f) = opts.to {
-        if f == Format::WebP || f == Format::Avif {
-            bail!(
-                "WebP/AVIF conversion is a Pro feature. Run 'imgcomp activate <KEY>' to unlock."
-            );
-        }
-    }
-    Ok(())
-}
-
-fn cap_free_batch(
-    mut files: Vec<(PathBuf, PathBuf)>,
-    tier: Tier,
-) -> Vec<(PathBuf, PathBuf)> {
-    if tier == Tier::Pro || files.len() <= FREE_MAX_FILES {
-        return files;
-    }
-    let skipped = files.len() - FREE_MAX_FILES;
-    println!(
-        "Free tier processes up to {} images per run; skipping the remaining {} (Pro removes this limit).",
-        FREE_MAX_FILES,
-        skipped
-    );
-    files.truncate(FREE_MAX_FILES);
-    files
 }
 
 fn collect_files(input: &Path, recursive: bool) -> Result<Vec<(PathBuf, PathBuf)>> {
@@ -365,63 +325,10 @@ pub fn total_bytes_grouped(summary: &Summary) -> BTreeMap<Format, (u64, u64)> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use std::path::PathBuf;
-
-    fn opts(tier: Tier, max: Option<u64>, to: Option<Format>) -> RunOptions {
-        RunOptions {
-            input: PathBuf::from("in"),
-            output: PathBuf::from("out"),
-            to,
-            max,
-            quality: Some(80),
-            ssim_threshold: 0.08,
-            recursive: false,
-            threads: 2,
-            csv: None,
-            tier,
-        }
-    }
 
     #[test]
-    fn pro_unlocked_for_max_and_webp() {
-        assert!(
-            enforce_tier(&opts(Tier::Pro, Some(500 * 1024), Some(Format::WebP))).is_ok()
-        );
-    }
-
-    #[test]
-    fn free_blocks_max() {
-        assert!(enforce_tier(&opts(Tier::Free, Some(500 * 1024), None)).is_err());
-    }
-
-    #[test]
-    fn free_blocks_webp() {
-        assert!(enforce_tier(&opts(Tier::Free, None, Some(Format::WebP))).is_err());
-    }
-
-    #[test]
-    fn free_blocks_avif() {
-        assert!(enforce_tier(&opts(Tier::Free, None, Some(Format::Avif))).is_err());
-    }
-
-    #[test]
-    fn free_allows_plain_quality() {
-        assert!(enforce_tier(&opts(Tier::Free, None, Some(Format::Jpeg))).is_ok());
-        assert!(enforce_tier(&opts(Tier::Free, None, None)).is_ok());
-    }
-
-    #[test]
-    fn free_batch_caps_at_ten() {
-        let files: Vec<(PathBuf, PathBuf)> = (0..14)
-            .map(|i| (PathBuf::from(format!("in{i}.jpg")), PathBuf::from(format!("{i}.jpg"))))
-            .collect();
-        let capped = cap_free_batch(files, Tier::Free);
-        assert_eq!(capped.len(), FREE_MAX_FILES);
-
-        let pro_files: Vec<(PathBuf, PathBuf)> = (0..14)
-            .map(|i| (PathBuf::from(format!("in{i}.jpg")), PathBuf::from(format!("{i}.jpg"))))
-            .collect();
-        let pro = cap_free_batch(pro_files, Tier::Pro);
-        assert_eq!(pro.len(), 14);
+    fn looks_like_file_path_detects_extension() {
+        assert!(looks_like_file_path(Path::new("out.jpg")));
+        assert!(!looks_like_file_path(Path::new("outdir")));
     }
 }

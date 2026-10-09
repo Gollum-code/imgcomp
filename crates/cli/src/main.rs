@@ -88,7 +88,6 @@ fn main() -> Result<()> {
         Cmd::Target { .. } | Cmd::Quality { .. } => {}
     }
 
-    let tier = license_cmd::current_tier_or_free();
     let opts = match cli.cmd {
         Cmd::Target {
             input,
@@ -115,7 +114,6 @@ fn main() -> Result<()> {
                 recursive,
                 threads,
                 csv,
-                tier,
             }
         }
         Cmd::Quality {
@@ -138,7 +136,6 @@ fn main() -> Result<()> {
                 recursive,
                 threads,
                 csv,
-                tier,
             }
         }
         Cmd::Activate { .. } | Cmd::Status | Cmd::Upgrade | Cmd::Deactivate => unreachable!(),
